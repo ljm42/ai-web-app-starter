@@ -73,6 +73,22 @@ git status
 
 At the end of a task, tell the student whether changes were committed and include the commit message.
 
+## Development Environment
+
+Prefer VS Code dev containers for development tools.
+
+Do not install Elixir, Phoenix, Node, databases, or app dependencies directly on the host machine unless the student explicitly approves it.
+
+Some students may develop directly on an Unraid server through VS Code Remote SSH. In that environment:
+
+- Assume the shell may be a powerful host shell.
+- Keep all project work inside the repo folder.
+- Do not modify Unraid system files.
+- Do not change unrelated Docker containers or host networking.
+- Do not store projects in `/root`, `/tmp`, or the Unraid root filesystem.
+- Prefer persistent project folders such as `/mnt/user/ai-students/STUDENT_NAME`.
+- Explain risks before running commands that affect Docker, host filesystems, networking, or public access.
+
 ## Safety Rules
 
 Before implementing features that involve sensitive behavior, pause and explain the risks.

@@ -10,6 +10,8 @@ Create your own repo from this template, then clone your repo to your computer.
 
 After cloning, open the project in your editor and start a chat with your AI coding assistant.
 
+If you are using the shared Unraid server as your development machine, read [Unraid Dev Environment](docs/UNRAID_DEV_ENV.md) before cloning the repo.
+
 ## First AI Prompt
 
 Copy this into your AI assistant:
