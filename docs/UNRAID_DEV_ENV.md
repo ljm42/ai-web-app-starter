@@ -2,7 +2,7 @@
 
 This setup uses an Unraid server as the Linux development machine.
 
-The Windows PC runs VS Code, but Elixir, Phoenix, git commands, tests, and app servers run on Unraid inside a VS Code dev container.
+The preferred setup is to run Coder on Unraid. Students use a browser on their Windows PC, while the editor, terminal, Elixir, Phoenix, git commands, tests, and app servers run in Coder workspaces on Unraid.
 
 ## Why This Setup
 
@@ -10,10 +10,10 @@ This avoids installing development tools directly on the Windows PC.
 
 The Windows PC needs:
 
-- VS Code
-- The VS Code Remote - SSH extension
-- The VS Code Dev Containers extension
-- An SSH key that can connect to the Unraid server
+- A modern browser
+- A GitHub account, if the student wants their own GitHub repo
+
+The Windows PC should not need Docker, WSL, Elixir, Phoenix, Node, VS Code, or SSH for normal student work.
 
 The Unraid server needs:
 
@@ -21,6 +21,9 @@ The Unraid server needs:
 - Docker enabled
 - Git available on the host
 - A persistent folder for student projects
+- Coder installed and reachable from the local network
+
+For the admin setup path, see [Coder On Unraid](CODER_ON_UNRAID.md).
 
 ## Important Unraid Warning
 
@@ -42,7 +45,7 @@ Use a persistent share instead, such as:
 
 or a cache-backed share if one is available.
 
-Because students may need to connect as `root`, be extra careful:
+Because the initial Coder setup may require a root shell on Unraid, be extra careful:
 
 - Work only inside the project folder.
 - Do not edit Unraid system files.
@@ -51,6 +54,8 @@ Because students may need to connect as `root`, be extra careful:
 - Do not expose the app publicly until a security review has been done.
 
 Docker access is powerful. Treat the Unraid host like production infrastructure, even for a learning project.
+
+Students should normally work in browser-based Coder workspaces, not directly in the Unraid root shell.
 
 ## Suggested Folder Layout
 
@@ -70,35 +75,35 @@ git clone git@github.com:STUDENT_USERNAME/STUDENT_REPO.git
 cd STUDENT_REPO
 ```
 
-## VS Code Flow
+## Coder Browser Flow
 
 On the Windows PC:
 
-1. Open VS Code.
-2. Install the Remote - SSH extension.
-3. Install the Dev Containers extension.
-4. Connect to the Unraid server with Remote - SSH.
-5. Open the student's project folder on Unraid.
-6. Ask the AI assistant to add or use a `.devcontainer` setup for the project.
-7. Run `Dev Containers: Reopen in Container`.
+1. Open the Coder URL in a browser.
+2. Sign in.
+3. Create or open the student's workspace.
+4. Open the browser IDE from the workspace page.
+5. Open a terminal in the browser IDE.
+6. Clone the student's repo, or create a new repo from the starter template first.
+7. Ask the AI assistant to help build the first small feature.
 
-After that, commands such as `mix test`, `mix phx.server`, and `git status` should run inside the Linux dev container.
+Commands such as `mix test`, `mix phx.server`, and `git status` should run inside the Coder workspace container.
 
 ## First Prompt For The AI
 
-Use this after opening the project on Unraid:
+Use this after opening the project in Coder:
 
 ```text
-We are developing this app on an Unraid server through VS Code Remote SSH.
+We are developing this app in a Coder workspace running on an Unraid server.
 
-Please use a VS Code dev container for development tools. Do not install Elixir, Phoenix, Node, databases, or app dependencies directly on the Unraid host unless I explicitly approve it.
+Please keep development tools and app dependencies inside this Coder workspace. Do not install Elixir, Phoenix, Node, databases, or app dependencies directly on the Unraid host unless I explicitly approve it.
 
 The project should stay inside this repo folder. Before running commands that affect Docker, the host filesystem, networking, or public access, explain what you are about to do and why.
 ```
 
 ## Ports And App Access
 
-During development, the app should only be exposed on the local network or through VS Code port forwarding.
+During development, the app should only be exposed through Coder's workspace app or port access features, or on the local network if an adult has reviewed it.
 
 Do not open router ports or expose the app publicly until the AI has performed a security review.
 
@@ -108,7 +113,20 @@ For Phoenix, the development server commonly uses:
 http://localhost:4000
 ```
 
-When running through VS Code Remote SSH or a dev container, VS Code can forward that port back to the Windows PC.
+When running through Coder, the workspace page can expose or link to the running app depending on how the workspace template is configured.
+
+## Remote SSH Fallback
+
+If Coder is not working yet, VS Code Remote SSH can still be used as a fallback.
+
+In that mode, the Windows PC needs:
+
+- VS Code
+- The VS Code Remote - SSH extension
+- The VS Code Dev Containers extension
+- An SSH key that can connect to the Unraid server
+
+This is less ideal for students because it reintroduces local setup and SSH troubleshooting.
 
 ## Alternative: Ubuntu Server VM
 
