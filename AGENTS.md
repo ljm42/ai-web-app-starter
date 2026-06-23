@@ -150,6 +150,15 @@ Use normal Phoenix conventions:
 
 When running inside Coder behind a path proxy, use the `PROXY_BASE_PATH` environment variable instead of hardcoding proxy paths. Configure Phoenix to apply it to `url`, `static_url`, and LiveView socket paths. If `PROXY_BASE_PATH` is not set, the app should fall back to `/` so it still works outside Coder.
 
+After creating a Phoenix app with `mix phx.new`, immediately adapt the generated app for the Coder proxy before asking the student to preview it:
+
+- Read and normalize `PROXY_BASE_PATH` in `config/runtime.exs`.
+- Apply the path to Phoenix `url` and `static_url`.
+- Use the path when constructing the LiveView socket path in `assets/js/app.js`; do not hardcode `/live`.
+- If needed, expose the path from the layout, such as with a meta tag in `root.html.heex`, so JavaScript can read it cleanly.
+- Keep the fallback path as `/` when `PROXY_BASE_PATH` is unset.
+- Run `mix format`, `mix test`, and commit the scaffold plus proxy adaptation together when it works.
+
 ## Review Checkpoints
 
 After every meaningful feature, perform a short code review.

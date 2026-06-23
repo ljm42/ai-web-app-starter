@@ -222,6 +222,8 @@ PROXY_BASE_PATH=/@USERNAME/WORKSPACE.main/apps/code-server/proxy/4000 mix phx.se
 
 Ask the AI assistant to configure Phoenix to read `PROXY_BASE_PATH` in `config/runtime.exs`, apply it to both `url` and `static_url`, and use it when constructing LiveView socket paths instead of hardcoding `/live`. Other stacks should use the same variable for their asset, route, API, and websocket base paths.
 
+When the AI creates a new Phoenix app with `mix phx.new`, it should make this proxy adaptation immediately, before asking the student to open the preview URL. The first commit for a new app should include both the Phoenix scaffold and the proxy-path fix.
+
 ## Codex In Coder
 
 There does not appear to be an official self-hosted "Codex web UI Docker container" to install next to Coder.
