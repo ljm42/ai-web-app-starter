@@ -1,4 +1,6 @@
-# Coder VM
+# Coder VM Admin Guide
+
+This is the administrator/operator guide for the shared Coder VM. Student-facing setup lives in [README.md](../README.md).
 
 This is the preferred "local cloud" setup for this project.
 
@@ -32,11 +34,11 @@ Coder gives you:
 
 It does not remove all risk. Coder still uses Docker to create workspaces, so the VM should be treated as shared development infrastructure.
 
-## First Pilot
+## Admin Pilot
 
 Start with one student workspace before scaling this to everyone.
 
-Pilot checklist:
+Admin checklist:
 
 - Install Coder on the Ubuntu VM.
 - Create one admin account.
@@ -289,35 +291,9 @@ Do not make app preview ports public until the app has had a security review.
 
 Reference: <https://coder.com/docs/user-guides/workspace-access/port-forwarding>
 
-## Student Flow
+## Student Instructions
 
-Students should normally do this:
-
-1. Create their own GitHub repo from `ljm42/ai-web-app-starter`, if they have a GitHub account.
-2. Create a Coder workspace using that repo URL, or use the default starter URL for a local-only smoke test.
-3. Open the Coder URL in a browser on their laptop.
-4. Sign in and open their workspace.
-5. Open the browser IDE, which should open `~/project` directly.
-6. Confirm `AGENTS.md` is visible and `git status` works inside `~/project`.
-7. Work with the AI assistant in small steps.
-8. Commit working checkpoints.
-9. Push to their GitHub repo when ready.
-
-Students should not need SSH or sudo access to the VM for normal app work.
-
-## Good First Student Prompt
-
-```text
-We are working in a Coder workspace running on a shared Coder VM.
-
-Before building anything, verify that we are working inside `~/project`, that `AGENTS.md` exists, that `git status` works, and that `PROXY_BASE_PATH` is set. If not, stop and help me fix the workspace setup.
-
-I want to build a small Phoenix LiveView web app with AI assistance. Please create the app inside `~/project`, not directly under `/home/coder`.
-
-Please keep all development tools, dependencies, and app data inside this workspace. Do not install anything on the Coder VM.
-
-Help me choose a small first app idea, then build the first working feature.
-```
+Give students the top-level [README.md](../README.md). They should not need this admin guide, SSH, or sudo access to the VM for normal app work.
 
 ## Open Questions For The Pilot
 
