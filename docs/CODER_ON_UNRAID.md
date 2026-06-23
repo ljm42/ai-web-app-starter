@@ -45,7 +45,7 @@ Pilot checklist:
 - Build a workspace image with Elixir, Erlang, Node, SQLite, git, and a browser IDE.
 - Clone the student's GitHub repo inside the workspace.
 - Run `mix phx.new` or ask the AI to create the first Phoenix LiveView app.
-- Start Phoenix with `mix phx.server`; the workspace template should provide `PHX_URL_PATH` automatically.
+- Start Phoenix with `mix phx.server`; the workspace template should provide `CODER_PROXY_BASE_PATH` automatically.
 - Open the app preview through Coder.
 - Confirm the student can commit and push changes.
 
@@ -108,20 +108,37 @@ Keep project dependencies inside the workspace container.
 
 Do not install Phoenix, Node packages, app databases, or AI tool credentials directly on the Unraid host.
 
-### Phoenix Proxy Path
+### Coder Proxy Base Path
 
-Phoenix apps running behind the Coder path proxy need to generate asset, LiveView, and route URLs with the workspace proxy prefix. Define this once in the Coder workspace container environment as `PHX_URL_PATH`.
+Apps running behind the Coder path proxy need to generate asset, websocket, route, and API URLs with the workspace proxy prefix. Define this once in the Coder workspace container environment as `CODER_PROXY_BASE_PATH`.
 
 For the current Docker template shape, add a local value near the existing `locals` block:
 
 ```hcl
 locals {
-  username         = data.coder_workspace_owner.me.name
-  phoenix_url_path = "/@${data.coder_workspace_owner.me.name}/${data.coder_workspace.me.name}.main/apps/code-server/proxy/4000"
+  username              = data.coder_workspace_owner.me.name
+  coder_proxy_base_path = "/@${data.coder_workspace_owner.me.name}/${data.coder_workspace.me.name}.main/apps/code-server/proxy/4000"
 }
 ```
 
-Then pass it into the workspace container along with the Coder agent token:
+Keep Git identity in the Coder agent environment:
+
+```hcl
+resource "coder_agent" "main" {
+  # ...
+
+  env = {
+    GIT_AUTHOR_NAME     = coalesce(data.coder_workspace_owner.me.full_name, data.coder_workspace_owner.me.name)
+    GIT_AUTHOR_EMAIL    = data.coder_workspace_owner.me.email
+    GIT_COMMITTER_NAME  = coalesce(data.coder_workspace_owner.me.full_name, data.coder_workspace_owner.me.name)
+    GIT_COMMITTER_EMAIL = data.coder_workspace_owner.me.email
+  }
+
+  # ...
+}
+```
+
+Pass the Coder agent token and proxy base path into the Docker workspace container:
 
 ```hcl
 resource "docker_container" "workspace" {
@@ -129,12 +146,14 @@ resource "docker_container" "workspace" {
 
   env = [
     "CODER_AGENT_TOKEN=${coder_agent.main.token}",
-    "PHX_URL_PATH=${local.phoenix_url_path}",
+    "CODER_PROXY_BASE_PATH=${local.coder_proxy_base_path}",
   ]
 
   # ...
 }
 ```
+
+Do not move `CODER_AGENT_TOKEN` into the `coder_agent` `env` map. The Docker container needs that token before the Coder agent can start.
 
 After publishing the new template version, restart or rebuild existing workspaces so the new environment variable is present. Student commands can stay simple:
 
@@ -145,10 +164,10 @@ mix phx.server
 If a one-off manual run is needed before the template is updated, prefix the command explicitly:
 
 ```sh
-PHX_URL_PATH=/@USERNAME/WORKSPACE.main/apps/code-server/proxy/4000 mix phx.server
+CODER_PROXY_BASE_PATH=/@USERNAME/WORKSPACE.main/apps/code-server/proxy/4000 mix phx.server
 ```
 
-Ask the AI assistant to configure Phoenix to read `PHX_URL_PATH` in `config/runtime.exs`, apply it to both `url` and `static_url`, and use it when constructing LiveView socket paths instead of hardcoding `/live`.
+Ask the AI assistant to configure Phoenix to read `CODER_PROXY_BASE_PATH` in `config/runtime.exs`, apply it to both `url` and `static_url`, and use it when constructing LiveView socket paths instead of hardcoding `/live`. Other stacks should use the same variable for their asset, route, API, and websocket base paths.
 
 ## Codex In Coder
 
