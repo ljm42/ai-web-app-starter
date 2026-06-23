@@ -120,6 +120,28 @@ Use one of these instead:
 
 Do not install random third-party "Codex web UI" containers that ask for OpenAI credentials.
 
+### Codex Extension Sign-In
+
+When the Codex IDE extension signs in from a browser-based Coder workspace, the login flow may redirect to a local callback URL like:
+
+```text
+http://localhost:1455/...
+```
+
+That `localhost` is inside the Coder workspace, not on the student's computer. If the browser cannot open the callback URL, replace only this part:
+
+```text
+http://localhost:1455
+```
+
+with the Coder proxy URL for that workspace:
+
+```text
+https://coder.example.ts.net/@USERNAME/WORKSPACE.main/apps/code-server/proxy/1455
+```
+
+Keep the rest of the callback path and query string exactly the same.
+
 ## App Preview
 
 Phoenix commonly runs on:
