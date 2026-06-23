@@ -146,6 +146,8 @@ Use normal Phoenix conventions:
 - Ecto schemas and migrations for stored data.
 - HEEx templates/components for UI.
 
+When running inside Coder behind a path proxy, use the `PHX_URL_PATH` environment variable instead of hardcoding proxy paths. Configure Phoenix to apply it to `url`, `static_url`, and LiveView socket paths. If `PHX_URL_PATH` is not set, the app should fall back to `/` so it still works outside Coder.
+
 ## Review Checkpoints
 
 After every meaningful feature, perform a short code review.

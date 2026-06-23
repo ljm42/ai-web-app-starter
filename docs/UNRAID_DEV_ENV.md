@@ -113,7 +113,13 @@ For Phoenix, the development server commonly uses:
 http://localhost:4000
 ```
 
-When running through Coder, the workspace page can expose or link to the running app depending on how the workspace template is configured.
+When running through Coder, the workspace page can expose or link to the running app depending on how the workspace template is configured. The workspace template should set `PHX_URL_PATH` so Phoenix can generate correct asset URLs, static URLs, and LiveView socket paths behind the Coder proxy.
+
+Phoenix apps should read `PHX_URL_PATH` from the environment and fall back to `/` when it is not set. With the template configured, students should normally start Phoenix with:
+
+```sh
+mix phx.server
+```
 
 ## Remote SSH Fallback
 
