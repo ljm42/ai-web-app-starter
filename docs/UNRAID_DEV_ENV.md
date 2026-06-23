@@ -113,9 +113,9 @@ For Phoenix, the development server commonly uses:
 http://localhost:4000
 ```
 
-When running through Coder, the workspace page can expose or link to the running app depending on how the workspace template is configured. The workspace template should set `CODER_PROXY_BASE_PATH` so apps can generate correct asset URLs, static URLs, API URLs, and websocket paths behind the Coder proxy.
+When running through Coder, the workspace page can expose or link to the running app depending on how the workspace template is configured. The workspace template should set `PROXY_BASE_PATH` so apps can generate correct asset URLs, static URLs, API URLs, and websocket paths behind the Coder proxy.
 
-Apps should read `CODER_PROXY_BASE_PATH` from the environment and fall back to `/` when it is not set. With the template configured, students should normally start Phoenix with:
+Apps should read `PROXY_BASE_PATH` from the environment and fall back to `/` when it is not set. With the template configured, students should normally start Phoenix with:
 
 ```sh
 mix phx.server

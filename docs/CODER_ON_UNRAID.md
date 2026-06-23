@@ -45,7 +45,7 @@ Pilot checklist:
 - Build a workspace image with Elixir, Erlang, Node, SQLite, git, and a browser IDE.
 - Clone the student's GitHub repo inside the workspace.
 - Run `mix phx.new` or ask the AI to create the first Phoenix LiveView app.
-- Start Phoenix with `mix phx.server`; the workspace template should provide `CODER_PROXY_BASE_PATH` automatically.
+- Start Phoenix with `mix phx.server`; the workspace template should provide `PROXY_BASE_PATH` automatically.
 - Open the app preview through Coder.
 - Confirm the student can commit and push changes.
 
@@ -108,16 +108,16 @@ Keep project dependencies inside the workspace container.
 
 Do not install Phoenix, Node packages, app databases, or AI tool credentials directly on the Unraid host.
 
-### Coder Proxy Base Path
+### Proxy Base Path
 
-Apps running behind the Coder path proxy need to generate asset, websocket, route, and API URLs with the workspace proxy prefix. Define this once in the Coder workspace container environment as `CODER_PROXY_BASE_PATH`.
+Apps running behind the Coder path proxy need to generate asset, websocket, route, and API URLs with the workspace proxy prefix. Define this once in the Coder workspace container environment as `PROXY_BASE_PATH`.
 
 For the current Docker template shape, add a local value near the existing `locals` block:
 
 ```hcl
 locals {
   username              = data.coder_workspace_owner.me.name
-  coder_proxy_base_path = "/@${data.coder_workspace_owner.me.name}/${data.coder_workspace.me.name}.main/apps/code-server/proxy/4000"
+  proxy_base_path = "/@${data.coder_workspace_owner.me.name}/${data.coder_workspace.me.name}.main/apps/code-server/proxy/4000"
 }
 ```
 
@@ -146,7 +146,7 @@ resource "docker_container" "workspace" {
 
   env = [
     "CODER_AGENT_TOKEN=${coder_agent.main.token}",
-    "CODER_PROXY_BASE_PATH=${local.coder_proxy_base_path}",
+    "PROXY_BASE_PATH=${local.proxy_base_path}",
   ]
 
   # ...
@@ -164,10 +164,10 @@ mix phx.server
 If a one-off manual run is needed before the template is updated, prefix the command explicitly:
 
 ```sh
-CODER_PROXY_BASE_PATH=/@USERNAME/WORKSPACE.main/apps/code-server/proxy/4000 mix phx.server
+PROXY_BASE_PATH=/@USERNAME/WORKSPACE.main/apps/code-server/proxy/4000 mix phx.server
 ```
 
-Ask the AI assistant to configure Phoenix to read `CODER_PROXY_BASE_PATH` in `config/runtime.exs`, apply it to both `url` and `static_url`, and use it when constructing LiveView socket paths instead of hardcoding `/live`. Other stacks should use the same variable for their asset, route, API, and websocket base paths.
+Ask the AI assistant to configure Phoenix to read `PROXY_BASE_PATH` in `config/runtime.exs`, apply it to both `url` and `static_url`, and use it when constructing LiveView socket paths instead of hardcoding `/live`. Other stacks should use the same variable for their asset, route, API, and websocket base paths.
 
 ## Codex In Coder
 
