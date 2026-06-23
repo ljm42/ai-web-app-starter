@@ -1,24 +1,24 @@
-# Coder On Unraid
+# Coder VM
 
 This is the preferred "local cloud" setup for this project.
 
-Students use a browser on Windows. Coder runs on Unraid. Each student gets a Coder workspace with a browser IDE, terminal, project files, Phoenix server, and AI coding tools.
+Students use a browser on their own laptop or desktop. Coder runs on an Ubuntu Server VM named `coder`. Each student gets a Coder workspace with a browser IDE, terminal, project files, Phoenix server, and AI coding tools.
 
 ## Target Shape
 
 ```text
-Windows browser
-  -> Coder on Unraid
+Student's laptop browser
+  -> Coder on the Ubuntu VM
     -> student workspace container
-      -> browser IDE
+      -> browser IDE opened at /home/coder/project
       -> terminal
       -> git repo
       -> Elixir, Phoenix, Node, SQLite
-      -> Codex CLI or other approved AI coding tool
+      -> Codex CLI or approved AI coding tool
       -> Phoenix app preview
 ```
 
-The goal is for the Windows PC to need only a browser.
+The goal is for the student's laptop to need only a browser.
 
 ## Why Coder
 
@@ -26,11 +26,11 @@ Coder gives you:
 
 - A browser-based development environment.
 - One workspace per student.
-- A terminal that runs on Unraid instead of Windows.
+- A terminal that runs in the workspace container, not on the student's laptop.
 - Port access for previewing the Phoenix app.
-- A cleaner boundary between student workspaces and the Unraid host.
+- A clean boundary between project files and VM or host administration.
 
-It does not remove all risk. Coder still needs Docker access to create workspaces, and Docker access on Unraid is powerful.
+It does not remove all risk. Coder still uses Docker to create workspaces, so the VM should be treated as shared development infrastructure.
 
 ## First Pilot
 
@@ -38,50 +38,45 @@ Start with one student workspace before scaling this to everyone.
 
 Pilot checklist:
 
-- Install Coder on Unraid.
+- Install Coder on the Ubuntu VM.
 - Create one admin account.
 - Create one student user.
 - Create one Docker-based workspace template.
-- Build a workspace image with Elixir, Erlang, Node, SQLite, git, and a browser IDE.
+- Build a workspace image with Elixir, Erlang, Node, SQLite, git, Codex CLI, and a browser IDE.
 - Configure the template to clone the student's project repo into `~/project`.
+- Configure code-server to open `~/project` directly.
 - Confirm `~/project/AGENTS.md` exists and `cd ~/project && git status` works.
-- Run `mix phx.new` or ask the AI to create the first Phoenix LiveView app inside `~/project`, not directly under `/home/coder`.
-- Start Phoenix with `mix phx.server`; the workspace template should provide `PROXY_BASE_PATH` automatically.
-- Open the app preview through Coder.
-- Confirm the student can commit and push changes.
+- Confirm `echo "$PROXY_BASE_PATH"` prints the Coder proxy path.
+- Ask the AI to create the first Phoenix LiveView app inside `~/project`, not directly under `/home/coder`.
+- Confirm Phoenix preview works through Coder.
+- Confirm the AI can run checks and commit working checkpoints.
 
-## Unraid Host Rules
+## VM Rules
 
-Keep Coder data on persistent storage, not the Unraid root filesystem.
+Keep Coder data on persistent VM storage, not temporary directories.
 
-Suggested locations:
-
-```text
-/mnt/user/appdata/coder
-/mnt/user/ai-students
-```
-
-Do not store Coder data or student projects in:
+Suggested VM-side locations:
 
 ```text
-/root
-/tmp
-/
+/home/larry/coder
+/home/larry/coder-images
 ```
 
-Avoid exposing Coder directly to the public internet for this beginner setup. Keep it on the local network or behind an access method you already trust.
+Keep student project work inside Coder workspaces. Students should not need SSH or sudo access to the VM for normal app development.
+
+Avoid exposing Coder directly to the public internet for this beginner setup. Keep it on the local network, behind Tailscale, or behind another access method you already trust.
 
 ## Installing Coder
 
-Use Coder's official Docker installation path.
+Use Coder's official Docker installation path on the Ubuntu VM.
 
 Coder's Docker docs say the Docker install requires Docker, a Linux machine, and available CPU and memory. The official Docker Compose example includes Coder and PostgreSQL.
 
 High-level install flow:
 
-1. Create a persistent Coder folder on Unraid.
+1. Create a persistent Coder folder on the VM.
 2. Download or create a Coder Docker Compose file there.
-3. Set Coder's access URL to the local URL students will use.
+3. Set Coder's access URL to the URL students will use.
 4. Start the Coder stack.
 5. Open the Coder URL in a browser.
 6. Create the first admin account.
@@ -89,9 +84,7 @@ High-level install flow:
 
 Reference: <https://coder.com/docs/install/docker>
 
-## Workspace Template
-
-Use a Docker-based workspace template.
+## Workspace Image
 
 For this project, the workspace image should include:
 
@@ -102,22 +95,25 @@ For this project, the workspace image should include:
 - Node.js
 - SQLite
 - Build tools
-- A browser IDE such as code-server or OpenVSCode Server
 - Codex CLI or another approved AI coding tool, if available and safe to authenticate
 
 Keep project dependencies inside the workspace container.
 
-Do not install Phoenix, Node packages, app databases, or AI tool credentials directly on the Unraid host.
+Do not install Phoenix, Node packages, app databases, or AI tool credentials directly on the VM unless you are intentionally updating the shared workspace image.
+
+## Workspace Template
+
+Use a Docker-based Coder workspace template.
 
 ### Project Repository Clone
 
-The workspace home directory, `/home/coder`, is not the project. Treat it like a persistent home folder. The project should live in a git repo at:
+The workspace home directory, `/home/coder`, is not the project. Treat it like a persistent home folder for tool settings and caches. The project should live in a git repo at:
 
 ```text
 /home/coder/project
 ```
 
-The Coder template should clone a repo into `~/project` on first start. For a real student, use that student's GitHub repo created from `ljm42/ai-web-app-starter`. For an admin smoke test, the default starter repo is acceptable, but remove its `origin` so students do not accidentally try to push to the template repo.
+For a real student, use that student's GitHub repo created from `ljm42/ai-web-app-starter`. For an admin smoke test, the default starter repo is acceptable, but remove its `origin` so test work is not pushed back to the starter repo.
 
 Add a repo URL parameter:
 
@@ -164,15 +160,33 @@ After creating or rebuilding a workspace, this should be true:
 cd ~/project
 ls AGENTS.md
 git status
+echo "$PROXY_BASE_PATH"
 ```
 
-Create the Phoenix app inside `~/project`. Do not create app folders directly under `/home/coder`, because Codex will not see the starter `AGENTS.md` there and the app may not be inside the project git repo.
+Create Phoenix apps inside `~/project`. Do not create app folders directly under `/home/coder`, because Codex will not see the starter `AGENTS.md` there and the app may not be inside the project git repo.
+
+### Browser IDE Folder
+
+Configure code-server to open `~/project` directly:
+
+```hcl
+module "code-server" {
+  count  = data.coder_workspace.me.start_count
+  source = "registry.coder.com/coder/code-server/coder"
+
+  version = "~> 1.0"
+
+  agent_id = coder_agent.main.id
+  order    = 1
+  folder   = local.project_dir
+}
+```
+
+This lets VS Code see `AGENTS.md` and `.vscode/extensions.json` immediately.
 
 ### Proxy Base Path
 
 Apps running behind the Coder path proxy need to generate asset, websocket, route, and API URLs with the workspace proxy prefix. Define this once in the Coder workspace container environment as `PROXY_BASE_PATH`.
-
-The `proxy_base_path` local above is passed into the workspace container as `PROXY_BASE_PATH`.
 
 Keep Git identity in the Coder agent environment:
 
@@ -208,7 +222,11 @@ resource "docker_container" "workspace" {
 
 Do not move `CODER_AGENT_TOKEN` into the `coder_agent` `env` map. The Docker container needs that token before the Coder agent can start.
 
-After publishing the new template version, restart or rebuild existing workspaces so the new environment variable is present. Student commands can stay simple:
+After publishing a new template version, restart or rebuild existing workspaces so new environment variables and startup behavior are present.
+
+## Phoenix App Setup
+
+Student commands can stay simple:
 
 ```sh
 mix phx.server
@@ -226,10 +244,9 @@ When the AI creates a new Phoenix app with `mix phx.new`, it should make this pr
 
 ## Codex In Coder
 
-There does not appear to be an official self-hosted "Codex web UI Docker container" to install next to Coder.
+Use one of these:
 
-Use one of these instead:
-
+- The official Codex VS Code extension, recommended by this repo in `.vscode/extensions.json`.
 - Codex CLI inside the Coder workspace terminal, if the student can authenticate safely.
 - Codex web/cloud against the student's GitHub repo, if that fits the student's account.
 - Another approved AI coding tool available in the browser IDE.
@@ -244,7 +261,7 @@ When the Codex IDE extension signs in from a browser-based Coder workspace, the 
 http://localhost:1455/...
 ```
 
-That `localhost` is inside the Coder workspace, not on the student's computer. If the browser cannot open the callback URL, replace only this part:
+That `localhost` is inside the Coder workspace, not on the student's laptop. If the browser cannot open the callback URL, replace only this part:
 
 ```text
 http://localhost:1455
@@ -278,27 +295,26 @@ Students should normally do this:
 
 1. Create their own GitHub repo from `ljm42/ai-web-app-starter`, if they have a GitHub account.
 2. Create a Coder workspace using that repo URL, or use the default starter URL for a local-only smoke test.
-3. Open the Coder URL in a browser.
+3. Open the Coder URL in a browser on their laptop.
 4. Sign in and open their workspace.
-5. Open the browser IDE.
-6. Open the `~/project` folder.
-7. Confirm `AGENTS.md` is visible and `git status` works inside `~/project`.
-8. Work with the AI assistant in small steps.
-9. Commit working checkpoints.
-10. Push to their GitHub repo when ready.
+5. Open the browser IDE, which should open `~/project` directly.
+6. Confirm `AGENTS.md` is visible and `git status` works inside `~/project`.
+7. Work with the AI assistant in small steps.
+8. Commit working checkpoints.
+9. Push to their GitHub repo when ready.
 
-They should not need an Unraid root shell for normal app work.
+Students should not need SSH or sudo access to the VM for normal app work.
 
 ## Good First Student Prompt
 
 ```text
-We are working in a Coder workspace running on an Unraid server.
+We are working in a Coder workspace running on a shared Coder VM.
 
-Before building anything, verify that we are working inside `~/project`, that `AGENTS.md` exists, and that `git status` works. If not, stop and help me fix the workspace setup.
+Before building anything, verify that we are working inside `~/project`, that `AGENTS.md` exists, that `git status` works, and that `PROXY_BASE_PATH` is set. If not, stop and help me fix the workspace setup.
 
 I want to build a small Phoenix LiveView web app with AI assistance. Please create the app inside `~/project`, not directly under `/home/coder`.
 
-Please keep all development tools, dependencies, and app data inside this workspace. Do not install anything on the Unraid host.
+Please keep all development tools, dependencies, and app data inside this workspace. Do not install anything on the Coder VM.
 
 Help me choose a small first app idea, then build the first working feature.
 ```
@@ -312,10 +328,4 @@ Before scaling beyond one workspace, decide:
 - How much CPU and memory can each workspace use?
 - Should workspaces shut down automatically when idle?
 - Should app preview ports be private to each student or visible to all authenticated Coder users?
-- Who owns backups of `/mnt/user/appdata/coder` and `/mnt/user/ai-students`?
-
-## Future Safer Alternative
-
-If the Unraid server later has enough RAM, running Coder inside an Ubuntu Server VM is cleaner than running it directly on Unraid.
-
-For now, direct-on-Unraid is acceptable for a small, supervised setup, as long as student work stays inside Coder workspaces and host-level changes are treated carefully.
+- Who owns backups of the Coder VM and workspace data?

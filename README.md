@@ -6,11 +6,11 @@ You do not need to understand every line of code at the beginning. Your job is t
 
 ## Before You Start
 
-Create your own repo from this template, then clone your repo to your computer.
+Create your own repo from this template, then open it in your development environment.
 
-After cloning, open the project in your editor and start a chat with your AI coding assistant.
+If you are using the shared Coder VM, read [Coder VM](docs/CODER_VM.md). In Coder, the project should be cloned into `~/project`; make sure `~/project/AGENTS.md` exists before asking the AI to build the app.
 
-If you are using the shared Unraid server as your development machine, read [Unraid Dev Environment](docs/UNRAID_DEV_ENV.md) before cloning the repo. The preferred setup is to use Coder in a browser, so the Windows PC does not need local development tools. In Coder, the project should be cloned into `~/project`; make sure `~/project/AGENTS.md` exists before asking the AI to build the app.
+If you are working on your own computer, clone your repo locally, open the project folder in your editor, and start a chat with your AI coding assistant.
 
 ## First AI Prompt
 

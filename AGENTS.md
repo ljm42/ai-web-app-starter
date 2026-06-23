@@ -75,21 +75,13 @@ At the end of a task, tell the student whether changes were committed and includ
 
 ## Development Environment
 
-Prefer VS Code dev containers for development tools.
+Prefer the shared Coder VM or a normal local editor. The student's laptop should not need Docker, WSL, Elixir, Phoenix, Node, or VS Code installed when using Coder.
 
-Do not install Elixir, Phoenix, Node, databases, or app dependencies directly on the host machine unless the student explicitly approves it.
+Do not install Elixir, Phoenix, Node, databases, or app dependencies directly on the Coder VM or any host machine unless the student explicitly approves it. Project tools and dependencies should live inside the Coder workspace container or the project repo.
 
 When running in Coder, the project should be inside `~/project`, and that folder should contain this `AGENTS.md` file and be a git repository. Do not create Phoenix apps directly under `/home/coder`; create them inside `~/project` so the AI guidance and git history apply to the app.
 
-Some students may develop directly on an Unraid server through VS Code Remote SSH. In that environment:
-
-- Assume the shell may be a powerful host shell.
-- Keep all project work inside the repo folder.
-- Do not modify Unraid system files.
-- Do not change unrelated Docker containers or host networking.
-- Do not store projects in `/root`, `/tmp`, or the Unraid root filesystem.
-- Prefer persistent project folders such as `/mnt/user/ai-students/STUDENT_NAME`.
-- Explain risks before running commands that affect Docker, host filesystems, networking, or public access.
+Do not change unrelated Docker containers, VM settings, networking, or public access from inside a student project. Explain risks before running commands that affect infrastructure rather than the app.
 
 ## Safety Rules
 
