@@ -117,7 +117,7 @@ For the current Docker template shape, add a local value near the existing `loca
 ```hcl
 locals {
   username              = data.coder_workspace_owner.me.name
-  proxy_base_path = "/@${data.coder_workspace_owner.me.name}/${data.coder_workspace.me.name}.main/apps/code-server/proxy/4000"
+  proxy_base_path     = "/@${data.coder_workspace_owner.me.name}/${data.coder_workspace.me.name}.main/apps/code-server/proxy/4000"
 }
 ```
 
