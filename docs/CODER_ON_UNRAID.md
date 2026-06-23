@@ -43,8 +43,9 @@ Pilot checklist:
 - Create one student user.
 - Create one Docker-based workspace template.
 - Build a workspace image with Elixir, Erlang, Node, SQLite, git, and a browser IDE.
-- Clone the student's GitHub repo inside the workspace.
-- Run `mix phx.new` or ask the AI to create the first Phoenix LiveView app.
+- Configure the template to clone the student's project repo into `~/project`.
+- Confirm `~/project/AGENTS.md` exists and `cd ~/project && git status` works.
+- Run `mix phx.new` or ask the AI to create the first Phoenix LiveView app inside `~/project`, not directly under `/home/coder`.
 - Start Phoenix with `mix phx.server`; the workspace template should provide `PROXY_BASE_PATH` automatically.
 - Open the app preview through Coder.
 - Confirm the student can commit and push changes.
@@ -108,18 +109,70 @@ Keep project dependencies inside the workspace container.
 
 Do not install Phoenix, Node packages, app databases, or AI tool credentials directly on the Unraid host.
 
+### Project Repository Clone
+
+The workspace home directory, `/home/coder`, is not the project. Treat it like a persistent home folder. The project should live in a git repo at:
+
+```text
+/home/coder/project
+```
+
+The Coder template should clone a repo into `~/project` on first start. For a real student, use that student's GitHub repo created from `ljm42/ai-web-app-starter`. For an admin smoke test, the default starter repo is acceptable, but remove its `origin` so students do not accidentally try to push to the template repo.
+
+Add a repo URL parameter:
+
+```hcl
+data "coder_parameter" "project_repo_url" {
+  name         = "project_repo_url"
+  display_name = "Project Git Repository"
+  description  = "Student repo URL. Use a repo created from ljm42/ai-web-app-starter when possible."
+  type         = "string"
+  default      = "https://github.com/ljm42/ai-web-app-starter.git"
+  mutable      = true
+  icon         = "/icon/git.svg"
+  order        = 1
+}
+```
+
+Add these locals near the existing `locals` block:
+
+```hcl
+locals {
+  username         = data.coder_workspace_owner.me.name
+  project_dir      = "/home/coder/project"
+  starter_repo_url = "https://github.com/ljm42/ai-web-app-starter.git"
+  proxy_base_path  = "/@${data.coder_workspace_owner.me.name}/${data.coder_workspace.me.name}.main/apps/code-server/proxy/4000"
+}
+```
+
+Then add the first-start clone to the `coder_agent.main` `startup_script`, after the `/etc/skel` copy:
+
+```sh
+if [ ! -d "${local.project_dir}/.git" ]; then
+  rm -rf "${local.project_dir}"
+  git clone "${data.coder_parameter.project_repo_url.value}" "${local.project_dir}"
+
+  if [ "${data.coder_parameter.project_repo_url.value}" = "${local.starter_repo_url}" ]; then
+    git -C "${local.project_dir}" remote remove origin || true
+  fi
+fi
+```
+
+After creating or rebuilding a workspace, this should be true:
+
+```sh
+cd ~/project
+ls AGENTS.md
+git status
+```
+
+Create the Phoenix app inside `~/project`. Do not create app folders directly under `/home/coder`, because Codex will not see the starter `AGENTS.md` there and the app may not be inside the project git repo.
+
 ### Proxy Base Path
 
 Apps running behind the Coder path proxy need to generate asset, websocket, route, and API URLs with the workspace proxy prefix. Define this once in the Coder workspace container environment as `PROXY_BASE_PATH`.
 
-For the current Docker template shape, add a local value near the existing `locals` block:
-
-```hcl
-locals {
-  username              = data.coder_workspace_owner.me.name
-  proxy_base_path     = "/@${data.coder_workspace_owner.me.name}/${data.coder_workspace.me.name}.main/apps/code-server/proxy/4000"
-}
-```
+The `proxy_base_path` local above is passed into the workspace container as `PROXY_BASE_PATH`.
 
 Keep Git identity in the Coder agent environment:
 
@@ -221,14 +274,16 @@ Reference: <https://coder.com/docs/user-guides/workspace-access/port-forwarding>
 
 Students should normally do this:
 
-1. Open the Coder URL in a browser.
-2. Sign in.
-3. Open their workspace.
-4. Open the browser IDE.
-5. Open a terminal.
-6. Work with the AI assistant in small steps.
-7. Commit working checkpoints.
-8. Push to their GitHub repo when ready.
+1. Create their own GitHub repo from `ljm42/ai-web-app-starter`, if they have a GitHub account.
+2. Create a Coder workspace using that repo URL, or use the default starter URL for a local-only smoke test.
+3. Open the Coder URL in a browser.
+4. Sign in and open their workspace.
+5. Open the browser IDE.
+6. Open the `~/project` folder.
+7. Confirm `AGENTS.md` is visible and `git status` works inside `~/project`.
+8. Work with the AI assistant in small steps.
+9. Commit working checkpoints.
+10. Push to their GitHub repo when ready.
 
 They should not need an Unraid root shell for normal app work.
 
@@ -237,7 +292,9 @@ They should not need an Unraid root shell for normal app work.
 ```text
 We are working in a Coder workspace running on an Unraid server.
 
-I want to build a small Phoenix LiveView web app with AI assistance.
+Before building anything, verify that we are working inside `~/project`, that `AGENTS.md` exists, and that `git status` works. If not, stop and help me fix the workspace setup.
+
+I want to build a small Phoenix LiveView web app with AI assistance. Please create the app inside `~/project`, not directly under `/home/coder`.
 
 Please keep all development tools, dependencies, and app data inside this workspace. Do not install anything on the Unraid host.
 

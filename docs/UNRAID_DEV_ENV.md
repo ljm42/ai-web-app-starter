@@ -77,6 +77,18 @@ cd STUDENT_REPO
 
 ## Coder Browser Flow
 
+The Coder workspace should clone the project repo into `~/project`. `/home/coder` is only the persistent home directory; it is not expected to be a git repo.
+
+Before asking the AI to build the app, verify this inside the Coder terminal:
+
+```sh
+cd ~/project
+ls AGENTS.md
+git status
+```
+
+If those commands fail, fix the workspace clone before generating a Phoenix app. Otherwise the app can end up outside the starter repo, without `AGENTS.md`, and without git history.
+
 On the Windows PC:
 
 1. Open the Coder URL in a browser.
